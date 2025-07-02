@@ -58,6 +58,28 @@ proc clear(app: App, buffer: HDC) =
   SelectObject(buffer, app.bgColor)
   PatBlt(buffer, 0, 0, ScreenWidth, ScreenHeight, PATCOPY)
 
+proc nextGeneration(app: var App) =
+  for i in 1..<RowSize - 1:
+    for j in 1..<ColSize - 1:
+      # top = top-left + top-middle + top-right
+      let top = uint8(app.board[i - 1][j - 1]) + uint8(app.board[i - 1][j]) + uint8(app.board[i - 1][j + 1])
+      # middle = left + right
+      let middle = uint8(app.board[i][j - 1]) + uint8(app.board[i][j + 1])
+      # bottom = bottom-left + bottom-middle + bottom-right
+      let bottom = uint8(app.board[i + 1][j - 1]) + uint8(app.board[i + 1][j]) + uint8(app.board[i + 1][j + 1])
+
+      app.board_neighbors[i][j] = top + middle + bottom;
+
+  for i in 1..<RowSize - 1:
+    for j in 1..<ColSize - 1:
+      case app.board_neighbors[i][j]
+      of 2:
+        discard # Do nothing
+      of 3:
+        app.board[i][j] = alive
+      else:
+        app.board[i][j] = dead
+
 proc setClientSize(hwnd: HWND, sx: int, sy: int) =
   var
     rc1: RECT
@@ -72,7 +94,6 @@ proc setClientSize(hwnd: HWND, sx: int, sy: int) =
 
 proc WindowProc(hwnd: HWND, message: UINT, wParam: WPARAM, lParam: LPARAM): LRESULT {.stdcall.} =
   var
-    hdc: HDC
     app {.global.}: App 
     bitmap {.global.}: HBITMAP 
     buffer {.global.}: HDC
@@ -82,7 +103,7 @@ proc WindowProc(hwnd: HWND, message: UINT, wParam: WPARAM, lParam: LPARAM): LRES
   of WM_CREATE:
     app.newGame();
 
-    hdc = GetDC(hwnd)
+    var hdc = GetDC(hwnd)
     bitmap = CreateCompatibleBitmap(hdc, ScreenWidth, ScreenHeight)
     buffer = CreateCompatibleDC(hdc)
 
@@ -92,16 +113,20 @@ proc WindowProc(hwnd: HWND, message: UINT, wParam: WPARAM, lParam: LPARAM): LRES
     return 0
   of WM_PAINT:
     var ps: PAINTSTRUCT
-    hdc = BeginPaint(hwnd, addr ps)
+    var hdc = BeginPaint(hwnd, addr ps)
     defer: EndPaint(hwnd, addr ps)
 
     app.clear(buffer)
     app.draw(buffer)
+    app.nextGeneration()
+
     BitBlt(hdc, 0, 0, ScreenWidth, ScreenHeight, buffer, 0, 0, SRCCOPY)
     return 0
 
   of WM_DESTROY:
     DeleteObject(brush)
+    DeleteDC(buffer);
+    DeleteObject(bitmap);
     PostQuitMessage(0)
     return 0
 
