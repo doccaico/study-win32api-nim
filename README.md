@@ -7,5 +7,5 @@ $ nimble install winim
 
 #### Run
 ```sh
-$ nim r message-box\main.nim
+$ nim r message_box.nim
 ```
