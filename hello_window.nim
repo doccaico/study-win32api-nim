@@ -61,8 +61,16 @@ proc main() =
   ShowWindow(hwnd, SW_SHOW)
   UpdateWindow(hwnd)
 
-  while GetMessage(addr msg, 0, 0, 0) != 0:
-    TranslateMessage(addr msg)
-    DispatchMessage(addr msg)
+  while true:
+    let ret = GetMessage(addr msg, 0, 0, 0)
+    if ret != 0:
+      if ret == -1:
+        MessageBox(0, "Error GetMessage failed", appName, MB_ICONERROR)
+        return
+      else:
+        TranslateMessage(addr msg)
+        DispatchMessage(addr msg)
+    else:
+      break
 
 main()

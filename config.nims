@@ -11,3 +11,6 @@ when defined(release) or defined(danger):
     switch("opt", "size") # or "speed"
     switch("d", "lto")
     switch("d", "useMalloc")
+else:
+    # for debug
+    switch("passC", r"-IC:\Langs\tcc-0.9.27\winapi\include\winapi")
