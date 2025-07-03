@@ -1,5 +1,7 @@
 ## study-win32api-nim
 
+** -- Windows only -- **
+
 #### Install
 ```sh
 $ nimble install winim
