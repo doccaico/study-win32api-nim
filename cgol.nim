@@ -1,6 +1,6 @@
 import std/[random]
-import winim/lean
-import winim/inc/mmsystem
+import winim/[lean, inc/mmsystem]
+
 
 const WindowTitle = when defined(release) or defined(danger): "Lifegame" else: "Lifegame (debug)"
 const CellSize = 2
@@ -30,7 +30,6 @@ type
 
 var
   app : App 
-  frames: int = 0
   bitmap : HBITMAP 
   screenDC : HDC
   renderDC : HDC
@@ -111,8 +110,10 @@ proc WindowProc(hwnd: HWND, message: UINT, wParam: WPARAM, lParam: LPARAM): LRES
     of int64('R'):
       newGame()
     of int64('B'):
+      DeleteObject(app.bgColor);
       app.bgColor = CreateSolidBrush(RGB(rand(255), rand(255), rand(255)))
     of int64('C'):
+      DeleteObject(app.cellColor);
       app.cellColor = CreateSolidBrush(RGB(rand(255), rand(255), rand(255)))
     else:
       discard
@@ -120,9 +121,10 @@ proc WindowProc(hwnd: HWND, message: UINT, wParam: WPARAM, lParam: LPARAM): LRES
     DeleteDC(screenDC);
     DeleteDC(renderDC);
     DeleteObject(bitmap);
+    DeleteObject(app.bgColor);
+    DeleteObject(app.cellColor);
     PostQuitMessage(0)
     return 0
-
   else:
     return DefWindowProc(hwnd, message, wParam, lParam)
 
@@ -203,13 +205,17 @@ proc main() =
     else:
       Sleep(1)
       if timeGetTime() > nextGameTick:
-        inc frames
         clearBackGround()
         nextGeneration()
         render(hwnd)
         nextGameTick +=  DWORD(SkipTicks)
 
   timeEndPeriod(1)
+  
+  if UnregisterClass(wndclass.lpszClassName, wndclass.hInstance) == 0:
+    MessageBox(0, "Error UnregisterClass failed", appName, MB_ICONERROR)
+    return
+
   return
 
 main()

@@ -4,14 +4,12 @@ when not defined(windows):
 switch("cc", "tcc")
 switch("cpu", "amd64")
 switch("threads", "off")
-switch("verbosity", "2")
+switch("verbosity", "0")
 
 when defined(release) or defined(danger):
     switch("cc", "vcc")
-    # switch("cc", "gcc")
     switch("opt", "size") # or "speed"
     switch("d", "lto")
     switch("d", "useMalloc")
 else:
-    # for debug
     switch("passC", r"-IC:\Langs\tcc-0.9.27\winapi\include\winapi")
