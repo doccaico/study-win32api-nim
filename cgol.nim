@@ -2,7 +2,7 @@ import std/[random]
 import winim/lean
 import winim/inc/mmsystem
 
-const WindowTitle = when defined(release) or defined(danger): "lifegame" else: "lifegame (debug)"
+const WindowTitle = when defined(release) or defined(danger): "Lifegame" else: "Lifegame (debug)"
 const CellSize = 2
 const InitialCellCount = 40 * 2
 const Fps = 30 div 2
@@ -47,8 +47,6 @@ proc shuffleBoard() =
       dec j
 
 proc newGame() =
-  app.cellColor = CreateSolidBrush(InitialCellColor)
-  app.bgColor = CreateSolidBrush(InitialBgColor) 
   for i in 1..<RowSize - 1:
     zeroMem(addr app.board[i], (sizeof State) * app.board[i].len)
     for j in 1..<ColSize - 1:
@@ -102,12 +100,22 @@ proc setClientSize(app: var App, hwnd: HWND, sx: int, sy: int) =
 proc WindowProc(hwnd: HWND, message: UINT, wParam: WPARAM, lParam: LPARAM): LRESULT {.stdcall.} =
   case message
   of WM_CREATE:
-
     app.setClientSize(hwnd, ScreenWidth, ScreenHeight)
     let x = GetSystemMetrics(SM_CXSCREEN) div 2 - app.cx div 2
     let y = GetSystemMetrics(SM_CYSCREEN) div 2 - app.cy div 2
     SetWindowPos(hwnd, 0, x, y, app.cx, app.cy, SWP_NOZORDER or SWP_NOOWNERZORDER)
     return 0
+  of WM_KEYDOWN:
+    # https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+    case wParam
+    of int64('R'):
+      newGame()
+    of int64('B'):
+      app.bgColor = CreateSolidBrush(RGB(rand(255), rand(255), rand(255)))
+    of int64('C'):
+      app.cellColor = CreateSolidBrush(RGB(rand(255), rand(255), rand(255)))
+    else:
+      discard
   of WM_DESTROY:
     DeleteDC(screenDC);
     DeleteDC(renderDC);
@@ -122,6 +130,8 @@ proc main() =
   randomize()
 
   newGame();
+  app.cellColor = CreateSolidBrush(InitialCellColor)
+  app.bgColor = CreateSolidBrush(InitialBgColor)
 
   var
     hInstance = GetModuleHandle(nil)
